@@ -1,4 +1,9 @@
 package in.anurag.gatekeeper.management.entity;
 
-public class OrganizationStatus {
+
+public enum OrganizationStatus {
+    PENDING,
+    ACTIVE,
+    SUSPENDED,
+    DELETED
 }

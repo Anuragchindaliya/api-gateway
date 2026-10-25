@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ApiManagementServiceApplication {
 
 	public static void main(String[] args) {
+		System.out.println("server startee");
 		SpringApplication.run(ApiManagementServiceApplication.class, args);
 	}
 

@@ -1,4 +1,4 @@
-package in.anurag.gatekeeper.management.responseDto;
+package in.anurag.gatekeeper.management.dto.requestDto.responseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
