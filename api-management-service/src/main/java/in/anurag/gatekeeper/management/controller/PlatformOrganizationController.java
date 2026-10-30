@@ -2,6 +2,7 @@ package in.anurag.gatekeeper.management.controller;
 
 import in.anurag.gatekeeper.management.dto.requestDto.OrganizationRequest;
 import in.anurag.gatekeeper.management.dto.requestDto.OrganizationResponse;
+import in.anurag.gatekeeper.management.dto.requestDto.OrganizationStatusRequest;
 import in.anurag.gatekeeper.management.service.OrganizationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,5 +21,13 @@ public class PlatformOrganizationController {
     @PostMapping
     public ResponseEntity<OrganizationResponse> create(@Valid @RequestBody OrganizationRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(organizationService.create(request));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OrganizationResponse> changeStatus(@PathVariable Long id,
+                                                             @Valid @RequestBody
+                                                             OrganizationStatusRequest request) {
+
+        return ResponseEntity.ok(organizationService.changeStatus(id, request));
     }
 }
