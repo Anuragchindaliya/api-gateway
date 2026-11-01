@@ -1,9 +1,6 @@
 package in.anurag.gatekeeper.management.service;
 
-import in.anurag.gatekeeper.management.dto.requestDto.OrganizationRequest;
-import in.anurag.gatekeeper.management.dto.requestDto.OrganizationResponse;
-import in.anurag.gatekeeper.management.dto.requestDto.OrganizationStatusRequest;
-import in.anurag.gatekeeper.management.dto.requestDto.TenantAdminRequest;
+import in.anurag.gatekeeper.management.dto.requestDto.*;
 import in.anurag.gatekeeper.management.dto.responseDto.TenantAdminResponse;
 import in.anurag.gatekeeper.management.entity.ManagementUser;
 import in.anurag.gatekeeper.management.entity.Organization;
@@ -27,18 +24,23 @@ public class OrganizationService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final TenantContext tenantContext;
+//    private final AuditService auditService;
+
     public OrganizationService(OrganizationRepository organizationRepository,
-                               ManagementUserRepository managementUserRepository,RoleRepository roleRepository,PasswordEncoder passwordEncoder){
+                               ManagementUserRepository managementUserRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
+                               TenantContext tenantContext) {
         this.organizationRepository = organizationRepository;
         this.managementUserRepository = managementUserRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tenantContext = tenantContext;
     }
 
-    public OrganizationResponse create(OrganizationRequest request){
+    public OrganizationResponse create(OrganizationRequest request) {
         long startedAt = System.nanoTime();
 
-        checkUnique(request.getName(),request.getSlug(),null);
+        checkUnique(request.getName(), request.getSlug(), null);
 
         Organization organization = new Organization();
 
@@ -53,12 +55,12 @@ public class OrganizationService {
     }
 
     @Transactional
-    public OrganizationResponse changeStatus(Long id, OrganizationStatusRequest request){
+    public OrganizationResponse changeStatus(Long id, OrganizationStatusRequest request) {
         long statedAt = System.nanoTime();
         Organization organization = getOrganization(id);
 
-        if(request.getStatus() == OrganizationStatus.DELETED){
-            throw new ApiException(HttpStatus.BAD_REQUEST,"Use DELETE to soft-delete an organization");
+        if (request.getStatus() == OrganizationStatus.DELETED) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Use DELETE to soft-delete an organization");
         }
 
         organization.setStatus(request.getStatus());
@@ -73,12 +75,12 @@ public class OrganizationService {
         long startedAt = System.nanoTime();
         Organization organization = getOrganization(organizationId);
 
-        if(managementUserRepository.findByOrganizationId(organizationId).isPresent()) {
+        if (managementUserRepository.findByOrganizationId(organizationId).isPresent()) {
             throw new ApiException(HttpStatus.CONFLICT,
                     "This organization already has a tenant administrator");
         }
 
-        if(managementUserRepository.existsByUsername(request.getUsername())) {
+        if (managementUserRepository.existsByUsername(request.getUsername())) {
             throw new ApiException(HttpStatus.CONFLICT, "Username already exists");
         }
 
@@ -99,23 +101,46 @@ public class OrganizationService {
         return TenantAdminResponse.from(user);
     }
 
-    private Organization getOrganization(Long id){
-        return organizationRepository.findByIdAndStatusNot(id,OrganizationStatus.DELETED).orElseThrow(()->new ApiException(HttpStatus.NOT_FOUND,"Organization not found"));
+
+    private Organization getOrganization(Long id) {
+        return organizationRepository.findByIdAndStatusNot(id, OrganizationStatus.DELETED).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Organization not found"));
     }
-    private void checkUnique(String name, String slug, Long currentId){
-        if(organizationRepository.existsByNameIgnoreCase(name)){
-            Organization current = currentId == null ? null: organizationRepository.findById(currentId).orElse(null);
-            if(current==null || !current.getName().equalsIgnoreCase(name)){
-                throw new ApiException(HttpStatus.CONFLICT,"Organization name already exists");
+
+    private void checkUnique(String name, String slug, Long currentId) {
+        if (organizationRepository.existsByNameIgnoreCase(name)) {
+            Organization current = currentId == null ? null : organizationRepository.findById(currentId).orElse(null);
+            if (current == null || !current.getName().equalsIgnoreCase(name)) {
+                throw new ApiException(HttpStatus.CONFLICT, "Organization name already exists");
             }
         }
 
-        if(organizationRepository.existsBySlugIgnoreCase(slug)){
+        if (organizationRepository.existsBySlugIgnoreCase(slug)) {
             Organization current = currentId == null ? null : organizationRepository.findById(currentId).orElse(null);
-            if(current == null || !current.getSlug().equalsIgnoreCase(slug)){
-                throw  new ApiException(HttpStatus.CONFLICT,"Organization slug already exists");
+            if (current == null || !current.getSlug().equalsIgnoreCase(slug)) {
+                throw new ApiException(HttpStatus.CONFLICT, "Organization slug already exists");
             }
         }
     }
+
+
+    //methods for tenant admin
+    @Transactional(readOnly = true)
+    public OrganizationResponse getOwnOrganization() {
+        return OrganizationResponse.from(tenantContext.getOrganization());
+    }
+
+//    public OrganizationResponse updateOwnOrganization(TenantOrganizationRequest request){
+//        long startedAt = System.nanoTime();
+//
+//        Organization organization = tenantContext.getOrganization();
+//        if(!organization.getName().equalsIgnoreCase(request.getName()) && organizationRepository.existsByNameIgnoreCase(request.getName())){
+//            throw new ApiException(HttpStatus.CONFLICT,"Organization name already exists");
+//        }
+//
+//        organization.setName(request.getName());
+//        organization.setUpdatedAt(LocalDateTime.now());
+//
+//
+//    }
 
 }
