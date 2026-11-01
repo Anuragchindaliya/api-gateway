@@ -1,4 +1,4 @@
-package in.anurag.gatekeeper.management.dto.requestDto.responseDto;
+package in.anurag.gatekeeper.management.dto.responseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +13,5 @@ public class HealthResponse {
     private String serviceStatus;
     private String dbStatus;
     private LocalDateTime timestamp;
-
 
 }

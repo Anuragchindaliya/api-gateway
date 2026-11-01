@@ -1,6 +1,6 @@
 package in.anurag.gatekeeper.management.controller;
 
-import in.anurag.gatekeeper.management.dto.requestDto.responseDto.HealthResponse;
+import in.anurag.gatekeeper.management.dto.responseDto.HealthResponse;
 import in.anurag.gatekeeper.management.service.HealthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
