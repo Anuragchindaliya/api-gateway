@@ -10,6 +10,7 @@ import in.anurag.gatekeeper.management.exception.ApiException;
 import in.anurag.gatekeeper.management.repository.ManagementUserRepository;
 import in.anurag.gatekeeper.management.repository.OrganizationRepository;
 import in.anurag.gatekeeper.management.repository.RoleRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,16 +26,17 @@ public class OrganizationService {
     private final PasswordEncoder passwordEncoder;
 
     private final TenantContext tenantContext;
-//    private final AuditService auditService;
+    private final AuditService auditService;
 
     public OrganizationService(OrganizationRepository organizationRepository,
                                ManagementUserRepository managementUserRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,
-                               TenantContext tenantContext) {
+                               TenantContext tenantContext, AuditService auditService) {
         this.organizationRepository = organizationRepository;
         this.managementUserRepository = managementUserRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.tenantContext = tenantContext;
+        this.auditService = auditService;
     }
 
     public OrganizationResponse create(OrganizationRequest request) {
@@ -129,18 +131,21 @@ public class OrganizationService {
         return OrganizationResponse.from(tenantContext.getOrganization());
     }
 
-//    public OrganizationResponse updateOwnOrganization(TenantOrganizationRequest request){
-//        long startedAt = System.nanoTime();
-//
-//        Organization organization = tenantContext.getOrganization();
-//        if(!organization.getName().equalsIgnoreCase(request.getName()) && organizationRepository.existsByNameIgnoreCase(request.getName())){
-//            throw new ApiException(HttpStatus.CONFLICT,"Organization name already exists");
-//        }
-//
-//        organization.setName(request.getName());
-//        organization.setUpdatedAt(LocalDateTime.now());
-//
-//
-//    }
+
+    public OrganizationResponse updateOwnOrganization(TenantOrganizationRequest request){
+        long startedAt = System.nanoTime();
+
+        Organization organization = tenantContext.getOrganization();
+        if(!organization.getName().equalsIgnoreCase(request.getName()) && organizationRepository.existsByNameIgnoreCase(request.getName())){
+            throw new ApiException(HttpStatus.CONFLICT,"Organization name already exists");
+        }
+
+        organization.setName(request.getName());
+        organization.setUpdatedAt(LocalDateTime.now());
+
+//        auditService.
+
+        return OrganizationResponse.from(organization);
+    }
 
 }
